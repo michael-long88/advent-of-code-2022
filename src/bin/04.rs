@@ -25,11 +25,7 @@ pub fn part_one(input: &str) -> Option<u32> {
     let count = parse(input)
        .into_iter()
        .map(|sector_ranges| {
-            if (sector_ranges[0] <= sector_ranges[2] && sector_ranges[1] >= sector_ranges[3]) || (sector_ranges[2] <= sector_ranges[0] && sector_ranges[3] >= sector_ranges[1]) {
-                1
-            } else {
-                0
-            }
+            u32::from((sector_ranges[0] <= sector_ranges[2] && sector_ranges[1] >= sector_ranges[3]) || (sector_ranges[2] <= sector_ranges[0] && sector_ranges[3] >= sector_ranges[1]))
        })
        .sum();
 
@@ -42,11 +38,7 @@ pub fn part_two(input: &str) -> Option<u32> {
        .map(|sector_range| {
             let range1 = sector_range[0]..=sector_range[1];
             let range2 = sector_range[2]..=sector_range[3];
-            if range2.contains(&sector_range[0]) || range2.contains(&sector_range[1]) || range1.contains(&sector_range[2]) || range1.contains(&sector_range[3]) {
-                1
-            } else {
-                0
-            }
+            u32::from(range2.contains(&sector_range[0]) || range2.contains(&sector_range[1]) || range1.contains(&sector_range[2]) || range1.contains(&sector_range[3]))
        })
        .sum();
 
