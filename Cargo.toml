@@ -9,3 +9,4 @@ publish = false
 
 [dependencies]
 pico-args = "0.5.0"
+array_tool = "1.0.3"
