@@ -1,5 +1,3 @@
-use regex::Regex;
-
 pub fn parse(input: &str) -> Vec<&str> {
     // Input is separated by 2 newlines, dividing the stacks of crates
     // and the directions for moving the crates
@@ -9,96 +7,71 @@ pub fn parse(input: &str) -> Vec<&str> {
         .collect()
 }
 
-pub fn get_crates(block: &str) -> Vec<Vec<&str>> {
-    // Each row has a mix of either 3 or 4 spaces (e.g., "   ", "    ") or
-    // a crate followed by a space (e.g., "[A] ")
-    // This regex captures that pattern and then separates each row into a `Vec<&str>`
-    // based on that pattern
-    let crate_regex: regex::Regex = Regex::new(r"\s{3,4}|\[\w\] ?").unwrap();
-    block
+pub fn get_crates(block: &str) -> Vec<Vec<char>> {
+    let rows: Vec<&str> = block
         .split('\n')
         .filter(|section| !section.is_empty())
-        .map(|row| {
-            crate_regex
-                .find_iter(row)
-                .map(|crate_chunk| crate_chunk.as_str().trim())
-                .collect()
-        })
-        .into_iter()
-        .collect()
-}
+        .collect();
+    let number_of_stacks = (rows[0].len() + 1) / 4;
+    let mut boxes = vec![Vec::<char>::new(); number_of_stacks];
 
-pub fn get_transposed_stacks(crate_chunk: &str) -> Vec<Vec<&str>> {
-    let mut crate_rows = get_crates(crate_chunk);
-    // Drop the last element that's empty due to it being the number labels
-    // in the input
-    crate_rows.pop();
-    let number_of_stacks = crate_rows[0].len();
-    let mut towers: Vec<_> = crate_rows.into_iter().map(|n| n.into_iter()).collect();
-    // Transpose the nested vectors (rows) so that each inner vector becomes the stacks
-    // of crates with the "top" crate being the last element in each vector
-    (0..number_of_stacks)
-        .map(|_| {
-            towers
-                .iter_mut()
-                .map(|n| n.next().unwrap())
-                .rev()
-                .filter(|row| !row.is_empty())
-                .collect::<Vec<&str>>()
-        })
-        .collect::<Vec<Vec<&str>>>()
+    rows
+        .iter()
+        .for_each(|row| {
+            row.chars().enumerate().for_each(|(index, crate_label)| {
+                if crate_label.is_ascii_alphabetic() {
+                    boxes[index / 4].insert(0, crate_label)
+                }
+            });
+        });
+
+    boxes
+
 }
 
 pub fn get_directions(directions: &str) -> Vec<Vec<u32>> {
-    // Each row follows the format "move <number of crates> from <start stack number> 
-    // to <end stack number>"
-    // This regex captures that pattern and then separates each row into a `Vec<u32>`
-    // based on that pattern
-    let direction_regex: regex::Regex = Regex::new(r"[0-9]{1,2}").unwrap();
+    // Since the directions follow the format "move N from S to E",
+    // we can just grab every 2nd element when split by whitespace
     directions
-        .split('\n')
+        .lines()
         .filter(|section| !section.is_empty())
         .map(|row| {
-            direction_regex
-                .find_iter(row)
-                .map(|crate_chunk| crate_chunk.as_str().parse::<u32>().unwrap())
+            row
+                .split_whitespace()
+                .into_iter()
+                .skip(1)
+                .step_by(2)
+                .map(|num_str| num_str.parse::<u32>().unwrap())
                 .collect()
         })
         .collect()
 }
 
-pub fn move_crates(input: &str, keep_order: bool) -> Vec<Vec<&str>> {
+pub fn move_crates(input: &str, keep_order: bool) -> Vec<Vec<char>> {
     let parsed_strings = parse(input);
-    let mut transposed_stacks = get_transposed_stacks(parsed_strings[0]);
+    let mut stacks = get_crates(parsed_strings[0]);
     let directions = get_directions(parsed_strings[1]);
-    // Following the format "move N from S to E", we take the last N elements from transposed_stacks[S] and
-    // move them to transposed_stacks[E]
+    // Following the format "move N from S to E", we take the last N elements from stacks[S] and
+    // move them to stacks[E]
     directions.iter().for_each(|row| {
-        let final_length = transposed_stacks[(row[1] - 1) as usize].len().saturating_sub(row[0] as usize);
-        let mut tail = transposed_stacks[(row[1] - 1) as usize].split_off(final_length);
+        let final_length = stacks[(row[1] - 1) as usize].len().saturating_sub(row[0] as usize);
+        let mut tail = stacks[(row[1] - 1) as usize].split_off(final_length);
         if !keep_order {
             tail.reverse();
         }
-        transposed_stacks[(row[2] - 1) as usize].extend(tail);
+        stacks[(row[2] - 1) as usize].extend(tail);
     });
 
-    transposed_stacks
+    stacks
 }
 
-pub fn get_top_crates(stacks: Vec<Vec<&str>>) -> String {
-    // Get the last element in each nested vector ("top crate")
-    // and extract the crate label from the element (e.g., "[A]" -> "A")
-    // returning the concatenated string of each crate label
-    let letter_regex: regex::Regex = Regex::new(r"\w").unwrap();
-
+pub fn get_top_crates(stacks: Vec<Vec<char>>) -> String {
     stacks
         .iter()    
-        .map(|tower| {
-            letter_regex.find(tower.last().unwrap())
-                .map(|letter| letter.as_str())
-                .unwrap()
+        .map(|stack| {
+            stack.last().unwrap().to_string()
         })
-        .collect::<Vec<&str>>()
+        .collect::<Vec<String>>()
         .join("")
 }
 
