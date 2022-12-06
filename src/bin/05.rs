@@ -94,7 +94,7 @@ pub fn get_top_crates(stacks: Vec<Vec<&str>>) -> String {
     stacks
         .iter()    
         .map(|tower| {
-            letter_regex.find(*tower.last().unwrap())
+            letter_regex.find(tower.last().unwrap())
                 .map(|letter| letter.as_str())
                 .unwrap()
         })
