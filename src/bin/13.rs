@@ -1,6 +1,6 @@
 use itertools::Itertools;
 use serde_json::Value;
-use std::{cmp::{max, Ordering}, io::Lines};
+use std::cmp::Ordering;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 enum Packet {
