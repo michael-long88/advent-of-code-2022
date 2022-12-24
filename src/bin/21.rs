@@ -143,7 +143,7 @@ pub fn part_two(input: &str) -> Option<i64> {
     loop {
         match yell_number(input, true, human_value) {
             Ok(number) => return Some(number),
-            Err(diff) => {
+            Err(_) => {
                 // let human_value += (learning_value * (2 * diff) as f64) as i64;
                 // let human_value += (learning_value * diff as f64) as i64;
                 // if learning_value >= 0.2 {
